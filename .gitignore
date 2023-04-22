@@ -137,3 +137,7 @@ dmypy.json
 Legacy
 
 TODO.txt
+.gitignore
+get_data/src/IDEAS.txt
+get_data/src/jobs.json
+get_data/src/scratchpads/check_for_duplicate_ids.py
