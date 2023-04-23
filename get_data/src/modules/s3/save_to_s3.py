@@ -22,7 +22,7 @@ def get_s3_client(aws_access_key: str, aws_secret_access_key: str) -> boto3.clie
 
 
 def save_json_to_s3(
-    s3_con: boto3.client, bucket_name: str, json_object: str, timestamp: str
+    s3_con: boto3.client, bucket_name: str, prefix_name: str, data: dict, timestamp: str
 ) -> None:
     """Saves json object to AWS s3 bucket.
 
@@ -32,11 +32,11 @@ def save_json_to_s3(
         AWS client for connecting to s3.
     bucket_name : str
         Name of the target s3 bucket
-    json_object : str
-        json data to upload
+    data : str
+        data to upload
     timestamp : str
         current timestamp
     """
     s3_con.put_object(
-        Body=json.dumps(json_object), Bucket=bucket_name, Key=f"jobs-{timestamp}"
+        Body=json.dumps(data), Bucket=bucket_name, Key=f"{prefix_name}/jobs-{timestamp}.json"
     )
