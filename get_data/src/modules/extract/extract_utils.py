@@ -1,6 +1,7 @@
 from serpapi import GoogleSearch
 from typing import Literal, List
 import json
+from datetime import datetime
 
 
 def get_query_params(
@@ -46,7 +47,7 @@ def get_query_params(
     }
 
 
-def query_jobs_from_api(max_pages_per_country: int, query_params: dict) -> list:
+def query_jobs_from_api(max_pages_per_country: int, query_params: dict) -> dict:
     """Queries the google_jobs engine using serpapi.GoogleSearch()
 
     Parameters
@@ -94,17 +95,7 @@ def query_jobs_from_api(max_pages_per_country: int, query_params: dict) -> list:
             jobs_list.append(jobs)
 
     flat_jobs_list = [item for sublist in jobs_list for item in sublist]
-
-    return flat_jobs_list
-
-
-def create_jobs_json(jobs_list: list) -> str:
-    """Turns list of dictionaries into a single json string.
-
-    Parameters
-    ----------
-    jobs_list : list
-        list of dictionaries, with each dictionary being a job listing
-
-    """
-    return json.dumps({result["job_id"]: result for result in jobs_list}, indent=4)
+    return {
+        "extract_date": datetime.now().strftime("%Y%m%d-%H%M%S"),
+        "data": flat_jobs_list,
+    }
