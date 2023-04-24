@@ -46,7 +46,11 @@ def get_query_params(
     }
 
 
-def query_jobs_from_api(max_pages_per_country: int, query_params: dict) -> dict:
+def query_jobs_from_api(
+    query_params: dict,
+    context: dict,
+    max_pages_per_country: int = 10,
+) -> dict:
     """Queries the google_jobs engine using serpapi.GoogleSearch()
 
     Parameters
@@ -67,7 +71,6 @@ def query_jobs_from_api(max_pages_per_country: int, query_params: dict) -> dict:
             start = num * 10
             query_params["start"] = start
             query_params["location"] = country
-
             search = GoogleSearch(query_params)
             results = search.get_dict()
 
@@ -89,12 +92,14 @@ def query_jobs_from_api(max_pages_per_country: int, query_params: dict) -> dict:
             else:
                 continue
 
-            # add list of jobs to
+            # add list of jobs to jobs_list
             jobs = results["jobs_results"]
+
             jobs_list.append(jobs)
 
     flat_jobs_list = [item for sublist in jobs_list for item in sublist]
     return {
+        "run_id": context["run_id"],
         "extract_date": datetime.now().strftime("%Y%m%d-%H%M%S"),
         "data": flat_jobs_list,
     }
