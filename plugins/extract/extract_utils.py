@@ -1,6 +1,5 @@
 from serpapi import GoogleSearch
 from typing import Literal, List
-import json
 from datetime import datetime
 
 
