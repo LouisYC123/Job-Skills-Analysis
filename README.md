@@ -1,3 +1,4 @@
+![jobs_dlh_architecture drawio](https://user-images.githubusercontent.com/97873724/234169343-b7d7d469-980a-47a8-a8af-7ce00078772a.png)
 # job-skills-analysis
 Visualising trends in Job skill requirements using SerpApi, Airflow, Snowflake and Dash
 or  
