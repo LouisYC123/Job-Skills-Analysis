@@ -1,9 +1,7 @@
 # job-skills-analysis
 Visualising trends in Job skill requirements using SerpApi, Airflow, Snowflake and Dash
-or  
-End-to-end pipeline for analysis of trends in Job skill requirements using SerpApi, Airflow, Snowflake and Dash  
-or 
-Building ELT and warehouse using SerpApi, Airflow, Snowflake and Dash  
+Building a Data LakeHouse with AWS, Snowflake & Airflow
+
 
 ## Summary
 
@@ -20,6 +18,7 @@ Building ELT and warehouse using SerpApi, Airflow, Snowflake and Dash
 - AWS account
 - IAM Role for the Snowflake Stage & Pipe (see below)
 - Snowflake S3 stage (see below)
+- 
 
 ### Snowflake External Stage (S3) creation
 A Snowflake external stage points to a storage location outside of Snowflake. Here, we will be using S3. Once set up, data loaded to the staged s3 bucket will automatically become available in Snowflake.
