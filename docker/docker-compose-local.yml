@@ -27,6 +27,7 @@ services:
                 max-file: "3"
         volumes:
             - "${PWD}/dags:/usr/local/airflow/dags"
+            - "${PWD}/dbt:/usr/local/airflow/dbt"
             - "${PWD}/plugins:/usr/local/airflow/plugins"
             - "${PWD}/requirements:/usr/local/airflow/requirements"
             - "${PWD}/startup_script:/usr/local/airflow/startup"
@@ -34,7 +35,11 @@ services:
             - "8080:8080"
         command: local-runner
         healthcheck:
-            test: ["CMD-SHELL", "[ -f /usr/local/airflow/airflow-webserver.pid ]"]
+            test:
+                [
+                    "CMD-SHELL",
+                    "[ -f /usr/local/airflow/airflow-webserver.pid ]"
+                ]
             interval: 30s
             timeout: 30s
             retries: 3
