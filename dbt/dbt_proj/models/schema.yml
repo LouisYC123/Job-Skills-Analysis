@@ -1,0 +1,12 @@
+
+version: 2
+
+models:
+  - name: google_jobs_flat
+    description: Contains the flattened google_jobs json data in a structured form.
+    # columns: 
+    #   - name: 
+    #     description:
+    #     tests:
+
+
