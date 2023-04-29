@@ -107,6 +107,45 @@ def create_aws_conn_id(
     logging.info(f"Connection {conn_id} is created")
 
 
+def create_snowflake_conn_id(
+    account: str,
+    snow_user: str,
+    password: str,
+    database: str,
+    db_schema: str,
+    region: str = "ap-southeast-2",
+    warehouse: str = "COMPUTE_WH",
+    conn_id: str = "snowflake_default",
+):
+    conn = Connection(
+        conn_id=conn_id,
+        conn_type="snowflake",
+        login=snow_user,
+        password=password,
+        schema=db_schema,
+        extra={
+            "account": account,
+            "database": database,
+            "region": region,
+            "warehouse": warehouse,
+        },
+    )
+    session = settings.Session()
+    conn_name = (
+        session.query(Connection).filter(Connection.conn_id == conn.conn_id).first()
+    )
+    # Check if connection already exists
+    if str(conn_name) == str(conn.conn_id):
+        logging.warning(f"Connection {conn.conn_id} already exists")
+        return None
+
+    # create a connection object
+
+    session.add(conn)
+    session.commit()
+    logging.info(f"Connection {conn_id} is created")
+
+
 # ---- 'Check' Functions
 
 
