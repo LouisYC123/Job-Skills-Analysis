@@ -1,10 +1,8 @@
 ![jobs_dlh_architecture drawio](https://user-images.githubusercontent.com/97873724/234169343-b7d7d469-980a-47a8-a8af-7ce00078772a.png)
 # job-skills-analysis
 Visualising trends in Job skill requirements using SerpApi, Airflow, Snowflake and Dash
-or  
-End-to-end pipeline for analysis of trends in Job skill requirements using SerpApi, Airflow, Snowflake and Dash  
-or 
-Building ELT and warehouse using SerpApi, Airflow, Snowflake and Dash  
+Building a Data LakeHouse with AWS, Snowflake & Airflow
+
 
 ## Summary
 
@@ -21,6 +19,9 @@ Building ELT and warehouse using SerpApi, Airflow, Snowflake and Dash
 - AWS account
 - IAM Role for the Snowflake Stage & Pipe (see below)
 - Snowflake S3 stage (see below)
+- dbt setup
+
+**NOTE:** I set up dbt before spinning up container, need to think how I want this to work
 
 ### Snowflake External Stage (S3) creation
 A Snowflake external stage points to a storage location outside of Snowflake. Here, we will be using S3. Once set up, data loaded to the staged s3 bucket will automatically become available in Snowflake.
@@ -59,6 +60,9 @@ Runs a local Apache Airflow environment that is a close representation of MWAA b
 
 To stop the local environment, Ctrl+C on the terminal and wait till the local runner and the postgres containers are stopped.
 
+#### dbt init
+docker exec into container and run dbt init from /dbt , follow the command line instructions
+** NOTE: ** You will need your snowflake credentials here
 
 ### Step three: Accessing the Airflow UI
 

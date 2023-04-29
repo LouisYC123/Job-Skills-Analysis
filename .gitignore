@@ -144,3 +144,4 @@ get_data/src/scratchpads/check_for_duplicate_ids.py
 snowsql_rt.log_bootstrap
 docker/config/.env.localrunner
 db-data
+scratchpads
