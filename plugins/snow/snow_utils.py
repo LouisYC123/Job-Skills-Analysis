@@ -8,8 +8,8 @@ def get_snowflake_hook(snowflake_conn_id: str = "snowflake_default"):
 
 def copy_from_stage(
     filename: str,
+    target_table: str,
     file_format: str = "my_json_format",
-    target_table: str = "raw_jobs_data",
     stage_name: str = "job_skills_stage",
 ):
     snow_hook = get_snowflake_hook()
