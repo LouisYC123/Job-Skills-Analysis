@@ -4,19 +4,35 @@ import os
 from dotenv import load_dotenv
 from airflow.decorators import dag, task
 from extract.extract_utils import get_query_params, query_jobs_from_api
-from s3.s3_utils import create_aws_conn_id, save_json_to_s3, archive_raw_data
+from s3.s3_utils import (
+    create_aws_conn_id,
+    create_snowflake_conn_id,
+    save_json_to_s3,
+    archive_raw_data,
+)
+from snow.snow_utils import copy_from_stage
 from extract.api_targets import COUNTRIES_LIST
-from snowflake.snow_utils import truncate_table, copy_from_stage, flatten_into_new_table
-
+from cosmos.providers.dbt.task_group import DbtTaskGroup
 
 load_dotenv()
 
-DAG_VERSION = "1.0.0"
-SERPAPI_KEY = os.getenv("SERPAPI_KEY")
+DAG_VERSION = "1.0.1"
+
+# AWS
 AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID")
 AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
 BUCKET_NAME = os.getenv("S3_RAW_DATA_BUCKET_NAME")
-
+# Snowflake
+SNOW_ACCOUNT = os.getenv("SNOW_ACCOUNT")
+SNOW_USER = os.getenv("SNOW_USER")
+SNOW_PASSWORD = os.getenv("SNOW_PASSWORD")
+SNOW_DB = os.getenv("SNOW_DB")
+SNOW_SCHEMA = os.getenv("SNOW_SCHEMA")
+# dbt
+DBT_ROOT_PATH = "/usr/local/airflow/dbt/dbt_proj"
+DBT_EXECUTABLE_PATH = "/usr/local/airflow/.local/bin/dbt"
+# Google Jobs
+SERPAPI_KEY = os.getenv("SERPAPI_KEY")
 SEARCH_TERM = "data engineer"
 MAX_PAGES_PER_COUNTRY = 2
 
@@ -45,10 +61,19 @@ def dag():
         context["ti"].xcom_push(key="bucket_name", value=BUCKET_NAME)
 
     @task.python()
-    def save_aws_conn():
+    def save_conn_ids():
+        # AWS
         create_aws_conn_id(
             aws_access_key=AWS_ACCESS_KEY_ID,
             aws_secret_access_key=AWS_SECRET_ACCESS_KEY,
+        )
+        # Snowflake
+        create_snowflake_conn_id(
+            account=SNOW_ACCOUNT,
+            snow_user=SNOW_USER,
+            password=SNOW_PASSWORD,
+            database=SNOW_DB,
+            db_schema=SNOW_SCHEMA,
         )
 
     @task.python()
@@ -88,19 +113,16 @@ def dag():
         )
         copy_from_stage(filename=target_file)
 
-    # Select into flat raw table
-    @task.python
-    def flatten_data():
-        flatten_into_new_table()
-
-    # dbt run
-    # TODO
+    # dbt
+    dbt_tg = DbtTaskGroup(
+        group_id="transform_data",
+        dbt_project_name="dbt_proj",
+        conn_id="snowflake_default",
+        dbt_args={"dbt_executable_path": DBT_EXECUTABLE_PATH},
+    )
 
     # TODO create 'clean up' section
     # truncate snowflake raw staging tables
-    @task.python()
-    def truncate_raw_data_table():
-        truncate_table(table_name="raw_jobs_data")
 
     # archive raw data in s3
     @task.python()
@@ -113,11 +135,11 @@ def dag():
     # Task dependencies
     (
         project_vars_to_xcom()
-        >> save_aws_conn()
+        >> save_conn_ids()
         >> save_to_s3(query_google_jobs(build_query_params()))
         >> copy_raw_data_from_stage()
-        >> flatten_data()
-        >> truncate_raw_data_table()
+        # >> truncate_raw_data_table()
+        >> dbt_tg
         >> archive()
     )
 
