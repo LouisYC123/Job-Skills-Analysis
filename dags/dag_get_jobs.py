@@ -31,7 +31,7 @@ SNOW_SCHEMA = os.getenv("SNOW_SCHEMA")
 SNOW_CONN_ID = "snowflake_default"
 # dbt
 DBT_PROJECT_NAME = "dbt_proj"
-DBT_ROOT_PATH = "/usr/local/airflow/dbt/dbt_proj"
+DBT_ROOT_PATH = "/usr/local/airflow/dbt"
 DBT_EXECUTABLE_PATH = "/usr/local/airflow/.local/bin/dbt"
 RAW_DATA_TABLE = "google_jobs"
 # Google Jobs
@@ -120,7 +120,9 @@ def dag():
     dbt_tg = DbtTaskGroup(
         group_id="transform_data",
         dbt_project_name=DBT_PROJECT_NAME,
+        # dbt_profiles_dir=DBT_ROOT_PATH + "dbt_proj/profiles.yml",
         conn_id=SNOW_CONN_ID,
+        dbt_root_path=DBT_ROOT_PATH,
         dbt_args={"dbt_executable_path": DBT_EXECUTABLE_PATH},
     )
 
