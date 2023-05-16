@@ -1,0 +1,20 @@
+version: 2
+
+sources:
+  - name: raw_data
+    database: JOBS_DB 
+    description: Database to hold raw data queried from API's and loaded to s3 Stage
+    schema: raw_data 
+    tables: 
+      - name: google_jobs_raw
+        description: raw google_jobs json data. Refreshed weekly.
+
+
+
+  # - name: raw_trends_data
+
+
+  # - name: raw_medium_data
+
+
+  # name: raw_twitter_data

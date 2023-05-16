@@ -64,6 +64,28 @@ To stop the local environment, Ctrl+C on the terminal and wait till the local ru
 docker exec into container and run dbt init from /dbt , follow the command line instructions
 ** NOTE: ** You will need your snowflake credentials here
 
+#### add a profiles.yml
+```
+dbt_proj:
+  target: raw_data
+  outputs:
+    raw_data:
+      type: snowflake
+      account: 
+
+      # User/password auth
+      user: 
+      password: 
+
+      role: 
+      database: 
+      warehouse: 
+      schema: 
+      threads: 
+      client_session_keep_alive: False
+      query_tag: 
+
+```
 ### Step three: Accessing the Airflow UI
 
 By default, the `bootstrap.sh` script creates a username and password for your local Airflow environment.

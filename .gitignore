@@ -145,3 +145,5 @@ snowsql_rt.log_bootstrap
 docker/config/.env.localrunner
 db-data
 scratchpads
+dbt/dbt_proj/profiles.yml
+dbt/dbt_proj/.user.yml

@@ -1,0 +1,66 @@
+
+version: 2
+
+models:
+  # Staging
+  - name: google_jobs_flat
+    description: Contains the google_jobs json data in a flattened structured form. Considered a 'staging' area.
+    config:
+      materialized: view
+  # Intermediate - Views
+  - name: flatten_skills_list
+    description: >
+      Executes list_filter() Python UDF to reduce description to a list of skills, then flattens that list, producing a new 
+      (duplicated) row for each item in the list. Each record is considered a 'jobskill'. i.e - A record represents each skill
+      listed as a requirement in the job posting. Considered a 'staging' area.
+    config:
+      materialized: view
+    columns: 
+      - name: jobskill_id
+        description: A unique id created by dbt_utils.generate_surrogate_key() using job_title, company_name, location
+      - name: jobskill
+        description: The 
+      - name: job_title
+        description: Title of the job the jobskill is derived from 
+      - name: job_type
+        description: Full-time | part-time | contract
+      - name: company_name
+        description:  Name of the hiring company who have posted the vacancy
+      - name: location
+        description: Location of the job
+      - name: job_listing_posted_at
+        description: Timestamp of when the job was posted
+      - name: posted_via
+        description: The agency that posted the job advert
+      - name: load_timestamp
+        description: Timestamp of when the data was loaded to snowflake.
+  # Intermediate - Tables
+  - name: tbl_int_jobskills
+    description: >
+      Incrementally loaded table, where each weeks run of data is appended. If jobskill_id already exists in the table, then 
+      'job_type', 'posted_via' or 'updated_timestamp' can be updated if applicable.
+    config:
+      materialized: table
+    columns: 
+      - name: jobskill_id
+        description: A unique id created by dbt_utils.generate_surrogate_key() using job_title, company_name, location
+      - name: jobskill
+        description: The 
+      - name: job_title
+        description: Title of the job the jobskill is derived from 
+      - name: job_type
+        description: Full-time | part-time | contract
+      - name: company_name
+        description:  Name of the hiring company who have posted the vacancy
+      - name: location
+        description: Location of the job
+      - name: job_listing_posted_at
+        description: Timestamp of when the job was posted
+      - name: posted_via
+        description: The agency that posted the job advert
+      - name: load_timestamp
+        description: Timestamp of when the data was loaded to snowflake.
+      - name: updated_timestamp
+        description: Timestamp of when the data was updated, where applicable.
+
+

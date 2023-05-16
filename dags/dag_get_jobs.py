@@ -16,8 +16,8 @@ from cosmos.providers.dbt.task_group import DbtTaskGroup
 
 load_dotenv()
 
+# -------------- CONFIG
 DAG_VERSION = "1.0.1"
-
 # AWS
 AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID")
 AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
@@ -28,9 +28,12 @@ SNOW_USER = os.getenv("SNOW_USER")
 SNOW_PASSWORD = os.getenv("SNOW_PASSWORD")
 SNOW_DB = os.getenv("SNOW_DB")
 SNOW_SCHEMA = os.getenv("SNOW_SCHEMA")
+SNOW_CONN_ID = "snowflake_default"
 # dbt
-DBT_ROOT_PATH = "/usr/local/airflow/dbt/dbt_proj"
+DBT_PROJECT_NAME = "dbt_proj"
+DBT_ROOT_PATH = "/usr/local/airflow/dbt"
 DBT_EXECUTABLE_PATH = "/usr/local/airflow/.local/bin/dbt"
+RAW_DATA_TABLE = "google_jobs_raw"
 # Google Jobs
 SERPAPI_KEY = os.getenv("SERPAPI_KEY")
 SEARCH_TERM = "data engineer"
@@ -40,16 +43,17 @@ MAX_PAGES_PER_COUNTRY = 2
 default_args = {
     "owner": "louis",
     "retries": 5,
-    "start_date": pendulum.today("Australia/Sydney"),
     "provide_context": True,
 }
 
 
 @dag(
     dag_id=f"dag_get_jobs_v{DAG_VERSION}",
-    schedule_interval=None,
+    start_date=datetime(2023, 5, 16),
+    #! - temp change to @daily to test for duplicates
+    schedule_interval="@daily",  #  once a week at midnight on Sunday morning
     default_args=default_args,
-    catchup=False,
+    catchup=True,
     dagrun_timeout=timedelta(hours=1),
     tags=["testing"],
 )
@@ -111,13 +115,14 @@ def dag():
         target_file = context["ti"].xcom_pull(
             key=f"saved_filename_for_{context['run_id']}"
         )
-        copy_from_stage(filename=target_file)
+        copy_from_stage(filename=target_file, target_table=RAW_DATA_TABLE)
 
     # dbt
     dbt_tg = DbtTaskGroup(
         group_id="transform_data",
-        dbt_project_name="dbt_proj",
-        conn_id="snowflake_default",
+        dbt_project_name=DBT_PROJECT_NAME,
+        conn_id=SNOW_CONN_ID,
+        dbt_root_path=DBT_ROOT_PATH,
         dbt_args={"dbt_executable_path": DBT_EXECUTABLE_PATH},
     )
 
