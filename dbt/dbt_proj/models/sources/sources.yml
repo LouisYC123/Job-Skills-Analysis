@@ -6,7 +6,7 @@ sources:
     description: Database to hold raw data queried from API's and loaded to s3 Stage
     schema: raw_data 
     tables: 
-      - name: google_jobs
+      - name: google_jobs_raw
         description: raw google_jobs json data. Refreshed weekly.
 
 
