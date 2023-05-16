@@ -33,7 +33,7 @@ SNOW_CONN_ID = "snowflake_default"
 DBT_PROJECT_NAME = "dbt_proj"
 DBT_ROOT_PATH = "/usr/local/airflow/dbt"
 DBT_EXECUTABLE_PATH = "/usr/local/airflow/.local/bin/dbt"
-RAW_DATA_TABLE = "google_jobs"
+RAW_DATA_TABLE = "google_jobs_raw"
 # Google Jobs
 SERPAPI_KEY = os.getenv("SERPAPI_KEY")
 SEARCH_TERM = "data engineer"
@@ -43,16 +43,17 @@ MAX_PAGES_PER_COUNTRY = 2
 default_args = {
     "owner": "louis",
     "retries": 5,
-    "start_date": pendulum.today("Australia/Sydney"),
     "provide_context": True,
 }
 
 
 @dag(
     dag_id=f"dag_get_jobs_v{DAG_VERSION}",
-    schedule_interval=None,
+    start_date=datetime(2023, 5, 16),
+    #! - temp change to @daily to test for duplicates
+    schedule_interval="@daily",  #  once a week at midnight on Sunday morning
     default_args=default_args,
-    catchup=False,
+    catchup=True,
     dagrun_timeout=timedelta(hours=1),
     tags=["testing"],
 )
@@ -120,7 +121,6 @@ def dag():
     dbt_tg = DbtTaskGroup(
         group_id="transform_data",
         dbt_project_name=DBT_PROJECT_NAME,
-        # dbt_profiles_dir=DBT_ROOT_PATH + "dbt_proj/profiles.yml",
         conn_id=SNOW_CONN_ID,
         dbt_root_path=DBT_ROOT_PATH,
         dbt_args={"dbt_executable_path": DBT_EXECUTABLE_PATH},
