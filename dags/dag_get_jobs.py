@@ -49,7 +49,7 @@ default_args = {
 
 @dag(
     dag_id=f"dag_get_jobs_v{DAG_VERSION}",
-    start_date=datetime(2023, 5, 16),
+    start_date=datetime(2023, 5, 21),
     #! - temp change to @daily to test for duplicates
     schedule_interval="@daily",  #  once a week at midnight on Sunday morning
     default_args=default_args,
