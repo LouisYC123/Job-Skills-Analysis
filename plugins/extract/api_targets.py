@@ -1,17 +1,20 @@
-COUNTRIES_LIST = [
-    # "Portugal",
-    # "Spain",
-    # "France",
-    "United Kingdom",
+COUNTRIES = {
+    "Portugal": {"country_code": "pt", "country_name": "Portugal"},
+    "Poland": {"country_code": "pl", "country_name": "Poland"},
+    "United Kingdom": {"country_code": "gb", "country_name": "United Kingdom"},
+    # "Spain": {"country_code": "es", "country_name": "Spain"},
+    # "France": {
+    #     "country_code": "fr",
+    #     "country_name": "France"
+    # },
     # "Ireland",
     # "Norway",
     # "Sweden",
     # "Finland",
     # "Denmark",
-    "Germany",
+    # "Germany",
     # "Belgium",
     # "Netherlands",
-    # "Poland",
     # "Italy",
     # "Austria",
     # "Hungary",
@@ -25,7 +28,7 @@ COUNTRIES_LIST = [
     # "Slovakia",
     # "Croatia",
     # "Switzerland",
-]
+}
 
 SKILLS_LIST = [
     "sql",
@@ -35,6 +38,7 @@ SKILLS_LIST = [
     "postgres",
     "PostgreSQL",
     "no-SQL",
+    "MongoDB",
     "snowflake",
     "Databricks",
     "Terraform",
@@ -129,5 +133,4 @@ SKILLS_LIST = [
     "RDS",
     "C++",
     "Ruby",
-    "Power",
 ]

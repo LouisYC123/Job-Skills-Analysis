@@ -11,13 +11,13 @@ from s3.s3_utils import (
     archive_raw_data,
 )
 from snow.snow_utils import copy_from_stage
-from extract.api_targets import COUNTRIES_LIST
+from extract.api_targets import COUNTRIES
 from cosmos.providers.dbt.task_group import DbtTaskGroup
 
 load_dotenv()
 
 # -------------- CONFIG
-DAG_VERSION = "1.0.1"
+DAG_VERSION = "1.1.0"
 # AWS
 AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID")
 AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
@@ -37,7 +37,7 @@ RAW_DATA_TABLE = "google_jobs_raw"
 # Google Jobs
 SERPAPI_KEY = os.getenv("SERPAPI_KEY")
 SEARCH_TERM = "data engineer"
-MAX_PAGES_PER_COUNTRY = 2
+MAX_PAGES_PER_COUNTRY = 4  # Temp setting, use 10 in prod
 
 # -------------- DAG
 default_args = {
@@ -49,11 +49,11 @@ default_args = {
 
 @dag(
     dag_id=f"dag_get_jobs_v{DAG_VERSION}",
-    start_date=datetime(2023, 5, 16),
-    #! - temp change to @daily to test for duplicates
+    start_date=datetime(2023, 5, 29),
+    #! Temp change to daily
     schedule_interval="@daily",  #  once a week at midnight on Sunday morning
     default_args=default_args,
-    catchup=True,
+    catchup=False,
     dagrun_timeout=timedelta(hours=1),
     tags=["testing"],
 )
@@ -81,22 +81,26 @@ def dag():
         )
 
     @task.python()
-    def build_query_params():
-        params = get_query_params(
-            api_key=SERPAPI_KEY,
-            search_term=SEARCH_TERM,
-            search_locations=COUNTRIES_LIST,
-        )
-        return params
+    def query_google_jobs(**context):
+        result_list = []
+        for country_params in COUNTRIES.values():
+            query_params = get_query_params(
+                api_key=SERPAPI_KEY,
+                search_term=SEARCH_TERM,
+                location=country_params,
+            )
 
-    @task.python()
-    def query_google_jobs(query_params, **context):
-        data = query_jobs_from_api(
-            query_params=query_params,
-            max_pages_per_country=MAX_PAGES_PER_COUNTRY,
-            context=context,
-        )
-        return data
+            result = query_jobs_from_api(
+                query_params=query_params,
+                max_num_pages=MAX_PAGES_PER_COUNTRY,
+                context=context,
+            )
+            result_list.append(result)
+        return {
+            "run_id": context["run_id"],
+            "extract_date": datetime.now().strftime("%Y%m%d-%H%M%S"),
+            "data": [item for sublist in result_list for item in sublist],
+        }
 
     @task.python()
     def save_to_s3(data, **context):
@@ -141,7 +145,7 @@ def dag():
     (
         project_vars_to_xcom()
         >> save_conn_ids()
-        >> save_to_s3(query_google_jobs(build_query_params()))
+        >> save_to_s3(query_google_jobs())
         >> copy_raw_data_from_stage()
         # >> truncate_raw_data_table()
         >> dbt_tg

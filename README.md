@@ -20,6 +20,7 @@ Building a Data LakeHouse with AWS, Snowflake & Airflow
 - IAM Role for the Snowflake Stage & Pipe (see below)
 - Snowflake S3 stage (see below)
 - dbt setup
+- load your target skills to snowflake
 
 **NOTE:** I set up dbt before spinning up container, need to think how I want this to work
 

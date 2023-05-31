@@ -2,6 +2,10 @@
 
 with source as (
     select * from {{ ref('google_jobs_flat') }}
+),
+
+skills_list as (
+    select * from jobs_db.raw_data.skills_list
 )
 
 
@@ -17,4 +21,13 @@ SELECT
     , load_timestamp
 FROM   
     source, 
-    Table(Flatten(list_filter(STRTOK_TO_ARRAY(description, ' ')))) F
+    Table(
+        Flatten(
+            list_filter(
+                STRTOK_TO_ARRAY(
+                    TRANSLATE(REPLACE(REPLACE(description, '\n', ' '),',', ' ' ),'()[]{}.!', '        ' ), ' '
+                    ),
+                (select ARRAY_AGG(skill) from skills_list)
+            )
+         )
+     ) F
