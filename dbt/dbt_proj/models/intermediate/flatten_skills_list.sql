@@ -13,10 +13,13 @@ SELECT
     {{ dbt_utils.generate_surrogate_key(['job_title', 'company_name', 'location', 'F.value']) }} as jobskill_id
     , F.value AS jobskill 
     , job_title
-    , job_type
     , company_name
+    , {{ dbt_utils.generate_surrogate_key(['company_name']) }} as company_id
     , location
-    , job_listing_posted_at
+    , {{ dbt_utils.generate_surrogate_key(['location']) }} as location_id
+    , {{ dbt_utils.generate_surrogate_key(['job_title', 'company_name', 'location']) }} as job_id
+    , job_type
+    , {{ dbt_utils.generate_surrogate_key(['job_type']) }} as job_type_id
     , posted_via
     , load_timestamp
 FROM   
