@@ -16,9 +16,13 @@ select
     jobskill_id
     , jobskill
     , job_title 
-    , job_type 
     , company_name
+    , company_id
     , location 
+    , location_id
+    , job_id
+    , job_type 
+    , job_type_id
     , job_listing_posted_at
     , posted_via
     , CURRENT_TIMESTAMP() as load_timestamp

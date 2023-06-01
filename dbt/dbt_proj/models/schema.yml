@@ -38,7 +38,8 @@ models:
   - name: tbl_int_jobskills
     description: >
       Incrementally loaded table, where each weeks run of data is appended. If jobskill_id already exists in the table, then 
-      'job_type', 'posted_via' or 'updated_timestamp' can be updated if applicable.
+      'job_type', 'posted_via' or 'updated_timestamp' can be updated if applicable. If a new skill is added to a job posting, 
+      only that new skill will be added to this table.
     config:
       materialized: table
     columns: 

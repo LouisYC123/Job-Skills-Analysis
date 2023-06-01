@@ -37,7 +37,7 @@ RAW_DATA_TABLE = "google_jobs_raw"
 # Google Jobs
 SERPAPI_KEY = os.getenv("SERPAPI_KEY")
 SEARCH_TERM = "data engineer"
-MAX_PAGES_PER_COUNTRY = 4  # Temp setting, use 10 in prod
+MAX_PAGES_PER_COUNTRY = 5  # Temp setting, use 10 in prod
 
 # -------------- DAG
 default_args = {
@@ -50,8 +50,7 @@ default_args = {
 @dag(
     dag_id=f"dag_get_jobs_v{DAG_VERSION}",
     start_date=datetime(2023, 5, 29),
-    #! Temp change to daily
-    schedule_interval="@daily",  #  once a week at midnight on Sunday morning
+    schedule_interval="@weekly",  #  once a week at midnight on Sunday morning
     default_args=default_args,
     catchup=False,
     dagrun_timeout=timedelta(hours=1),
