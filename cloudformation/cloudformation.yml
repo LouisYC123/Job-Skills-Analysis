@@ -1,0 +1,58 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Template to spin up cloud architecture for the JobSkillsAnalysis project
+
+
+Mappings:
+  DataSource:
+    GoogleJobs:
+      LandingZoneBucketName: lg-google-jobs-landing-zone
+      ArchiveZoneBucketName: lg-google-jobs-archive-zone
+      GlueCatalogDBName: google_jobs
+
+
+Resources:  
+  # ---- S3 Buckets
+  GoogleJobsLanding:
+    Type: "AWS::S3::Bucket"
+    Properties:
+      BucketName: !FindInMap [DataSource, GoogleJobs, LandingZoneBucketName]
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      LoggingConfiguration:
+        DestinationBucketName: !Ref AccessLogBucketLanding
+
+  AccessLogBucketGoogleJobsLanding:
+    Type: "AWS::S3::Bucket"
+    Properties:
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: True
+      OwnershipControls:
+        Rules:
+          - ObjectOwnership: ObjectWriter
+
+  # Create External Stage
+
+  # ---- MWAA
+
+  # ---- Quicksight
+
+  QuickSightAnalysis:
+    Type: 'AWS::QuickSight::Analysis'
+    Properties:
+      AnalysisId: 'JobSkillAnalysis'
+      AwsAccountId: 'YOUR_AWS_ACCOUNT_ID' # TODO
+      Name: 'My Analysis' # TODO
+      Permissions: # TODO
+        - Principal: '*' 
+          Actions:
+            - 'quicksight:DescribeAnalysis'
+            - 'quicksight:DescribeAnalysisPermissions'
+            - 'quicksight:QueryAnalysis'
+            - 'quicksight:UpdateAnalysisPermissions'
+      SourceEntity: # TODO
+        AnalysisSourceTemplate:
+          DataSetReferences:
+            - DataSetArn: 'arn:aws:quicksight:us-east-1:YOUR_AWS_ACCOUNT_ID:dataset/DatasetId'
+              DataSetPlaceholder: 'MyDataSet'
