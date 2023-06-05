@@ -52,7 +52,7 @@ default_args = {
     start_date=datetime(2023, 5, 29),
     schedule_interval="@weekly",  #  once a week at midnight on Sunday morning
     default_args=default_args,
-    catchup=False,
+    catchup=True,
     dagrun_timeout=timedelta(hours=1),
     tags=["testing"],
 )
