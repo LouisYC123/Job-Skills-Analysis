@@ -1,0 +1,138 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Template to spin up cloud architecture for the JobSkillsAnalysis project
+
+Mappings:
+  DataSource:
+    GoogleJobs:
+      LandingZoneBucketName: lg-google-jobs-landing-zone
+      ArchiveZoneBucketName: lg-google-jobs-archive-zone
+      GlueCatalogDBName: google_jobs
+
+Resources:  
+  # ---- S3 Buckets
+  GoogleJobsLanding:
+    Type: "AWS::S3::Bucket"
+    Properties:
+      BucketName: !FindInMap [DataSource, GoogleJobs, LandingZoneBucketName]
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      LoggingConfiguration:
+        DestinationBucketName: !Ref AccessLogBucketGoogleJobsLanding
+
+  AccessLogBucketGoogleJobsLanding:
+    Type: "AWS::S3::Bucket"
+    Properties:
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: True
+      OwnershipControls:
+        Rules:
+          - ObjectOwnership: ObjectWriter
+
+  # ---- IAM Roles
+  SnowflakeS3StageRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: SnowflakeS3StageRole
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              AWS: # Temp Placeholder
+                - !Sub "arn:aws:iam::${AWS::AccountId}:root"
+            Action: sts:AssumeRole
+      Policies: 
+        - PolicyName: snowflake_stage_access
+          PolicyDocument: 
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:GetObjectVersion
+                Resource:                   
+                  - !GetAtt GoogleJobsLanding.Arn
+                  - !Sub "${GoogleJobsLanding.Arn}/*"
+              - Effect: Allow
+                Action: 
+                  - s3:ListBucket
+                  - s3:GetBucketLocation
+                Resource: 
+                  - !GetAtt GoogleJobsLanding.Arn
+                  - !Sub "${GoogleJobsLanding.Arn}/*"
+              # Condition:
+              #   StringLike: 
+              #     s3:prefix:
+              #       - "*"
+
+
+  # ---- MWAA
+  # TODO
+  # ---- Secrets
+  SnowflakeCredentials:
+    # TODO - See aws-data-lakehouse cloudformation.yml
+  SecretRedshiftAttachment:
+    # TODO - See aws-data-lakehouse cloudformation.yml
+
+  # ---- Quicksight
+  # TODO
+  QuickSightSnowflakeDataSource:
+    Type: 'AWS::QuickSight::DataSource'
+    Properties:
+      DataSourceId: 'MySnowflakeDataSource'
+      AwsAccountId: 'YOUR_AWS_ACCOUNT_ID'
+      Name: 'My Snowflake DataSource'
+      DataSourceParameters:
+        SnowflakeParameters:
+          Database: 'my_database'
+          Warehouse: 'my_warehouse'
+      Credentials:
+        CredentialPair:
+          Username: 'my_snowflake_username'  # TODO - Use SecretsManager
+          Password: 'my_snowflake_password'
+  
+  # TODO
+  QuickSightSnowflakeDataset:
+    Type: 'AWS::QuickSight::DataSet'
+    Properties:
+      DataSetId: 'MySnowflakeDataSet'
+      AwsAccountId: 'YOUR_AWS_ACCOUNT_ID'
+      Name: 'My Snowflake DataSet'
+      PhysicalTableMap:
+        - TableName: 'my_table'
+          DataSourceArn: !Ref QuickSightSnowflakeDataSource
+          InputColumns:
+            - Name: 'column1'
+              Type: STRING
+            - Name: 'column2'
+              Type: INTEGER
+            - Name: 'column3'
+              Type: DECIMAL(10,2)
+            # Add more columns as needed
+      Permissions:
+        - Principal: '*'
+          Actions:
+            - 'quicksight:DescribeDataSet'
+            - 'quicksight:DescribeDataSetPermissions'
+            - 'quicksight:PassDataSet'
+            - 'quicksight:DescribeIngestion'
+            - 'quicksight:ListIngestions'
+            - 'quicksight:UpdateDataSetPermissions'
+  # TODO
+  QuickSightAnalysis:
+    Type: 'AWS::QuickSight::Analysis'
+    Properties:
+      AnalysisId: 'JobSkillsAnalysis'
+      AwsAccountId: !Sub "arn:aws:iam::${AWS::AccountId}:root"
+      Name: 'JobSkillsAnalysis'
+      Permissions:
+        - Principal: '*' 
+          Actions:
+            - "*"
+      SourceEntity: # TODO
+        AnalysisSourceTemplate:
+          DataSetReferences:
+            - DataSetArn: 'arn:aws:quicksight:us-east-1:YOUR_AWS_ACCOUNT_ID:dataset/DatasetId'
+              DataSetPlaceholder: 'MyDataSet'

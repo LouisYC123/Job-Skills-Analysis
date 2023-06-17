@@ -10,6 +10,10 @@
     )
 }}
 
+with source as (
+    select * from {{ ref('flatten_skills_list') }}
+)
+
 {% if is_incremental() %}
 
 select
@@ -28,7 +32,7 @@ select
     , CURRENT_TIMESTAMP() as load_timestamp
     , CURRENT_TIMESTAMP() as updated_timestamp
     
-from {{ ref('flatten_skills_list') }}
+from source
 where load_timestamp >= (select coalesce(max(load_timestamp), '2020-01-01' ) from {{ this }})
     and jobskill_id not in (select jobskill_id from {{ this }})
 
@@ -36,8 +40,9 @@ where load_timestamp >= (select coalesce(max(load_timestamp), '2020-01-01' ) fro
 
 SELECT 
     *
+    , CURRENT_TIMESTAMP() as updated_timestamp
 FROM 
-    {{ ref('flatten_skills_list') }}
+    source
 
 {% endif %}
 

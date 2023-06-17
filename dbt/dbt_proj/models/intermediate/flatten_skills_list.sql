@@ -21,6 +21,7 @@ SELECT
     , job_type
     , {{ dbt_utils.generate_surrogate_key(['job_type']) }} as job_type_id
     , posted_via
+    , job_listing_posted_at
     , load_timestamp
 FROM   
     source, 
