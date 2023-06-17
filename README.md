@@ -1,6 +1,8 @@
-![jobs_dlh_architecture drawio](https://user-images.githubusercontent.com/97873724/234169343-b7d7d469-980a-47a8-a8af-7ce00078772a.png)
 # job-skills-analysis
 Visualising trends in Job skill requirements using SerpApi, webscraping, Airflow, Snowflake and AWS Quicksight.
+
+![jobs_dlh_architecture-V3 drawio](https://github.com/LouisYC123/job-skills-analysis/assets/97873724/0b800cd9-dc51-4e5b-a9a1-6bd47e6cc8ec)  
+
 
 
 ## Summary
