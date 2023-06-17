@@ -1,15 +1,21 @@
 ![jobs_dlh_architecture drawio](https://user-images.githubusercontent.com/97873724/234169343-b7d7d469-980a-47a8-a8af-7ce00078772a.png)
 # job-skills-analysis
-Visualising trends in Job skill requirements using SerpApi, Airflow, Snowflake and Dash
-Building a Data LakeHouse with AWS, Snowflake & Airflow
+Visualising trends in Job skill requirements using SerpApi, webscraping, Airflow, Snowflake and AWS Quicksight.
 
 
 ## Summary
+This repo contains a cloudformation template and supporting code to build a Data LakeHouse with AWS, Snowflake & Airflow. Each week, data from new job postings will be fetched and loaded to Snowflake. From there, dbt models will handle the data cleaning and transformations required to get the data into a useable shape fit for analysis.
 
+The aim of the analysis is to visualize trends in the skills required for data engineering jobs
 
 ## Interesting Features
 
+- Handling JSON data direclty in the data warehouse
+- Incorporating Python into SQL scripts using Python UDFs
+- Using dbt utility package for the generation of unique identifiers
 
+** Future Build: **
+ - Incorporate data from google trends, Medium API and Twitter to further understand trends in Job Skills.
 
 ## Prerequisites
 
@@ -22,7 +28,6 @@ Building a Data LakeHouse with AWS, Snowflake & Airflow
 - dbt setup
 - load your target skills to snowflake
 
-**NOTE:** I set up dbt before spinning up container, need to think how I want this to work
 
 ### Snowflake External Stage (S3) creation
 A Snowflake external stage points to a storage location outside of Snowflake. Here, we will be using S3. Once set up, data loaded to the staged s3 bucket will automatically become available in Snowflake.
