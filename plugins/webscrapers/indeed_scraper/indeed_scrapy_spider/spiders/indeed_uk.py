@@ -1,8 +1,7 @@
 import re
 import json
 import scrapy
-from urllib.parse import urlencode
-from basic_scrapy_spider.items import JobItem
+from webscrapers.indeed_scraper.indeed_scrapy_spider.items import JobItem
 
 """scraped 53 jobs (posted in last 7 days) in 20 minutes"""
 
