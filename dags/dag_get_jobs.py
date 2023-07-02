@@ -12,7 +12,7 @@ from s3.s3_utils import (
 )
 from snow.snow_utils import copy_from_stage
 from extract.api_targets import COUNTRIES
-from cosmos.providers.dbt.task_group import DbtTaskGroup
+from cosmos.task_group import DbtTaskGroup
 
 load_dotenv()
 
