@@ -149,3 +149,8 @@ dbt/dbt_proj/profiles.yml
 dbt/dbt_proj/.user.ym
 dbt/dbt_proj/.user.yml
 scratchpads
+plugins/webscrapers/indeed_scraper/indeed_scrapy_spider/settings.py
+media/dashboard_example.webp
+plugins/webscrapers/indeed_scraper/indeed_scrapy_spider/output.json
+plugins/webscrapers/indeed_scraper/indeed_scrapy_spider/outputOLD.json
+plugins/webscrapers/indeed_scraper/indeed_scrapy_spider/settings.py
