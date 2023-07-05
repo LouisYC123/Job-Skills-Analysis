@@ -1,16 +1,14 @@
 from airflow.decorators import dag, task
-from airflow.operators.python_operator import PythonOperator
 from scrapy.crawler import CrawlerProcess
-from webscrapers.indeed_scraper.indeed_scrapy_spider.spiders.indeed_uk import (
+from webscrapers.indeed_jobs.indeed_jobs.spiders.indeeduk import (
     IndeedJobSpider,
 )
-from scrapy.utils.project import get_project_settings
+from webscrapers.indeed_jobs.indeed_jobs.settings_B import scrapy_settings
 from datetime import datetime, timedelta
-import pendulum
 
 
 # -------------- CONFIG
-DAG_VERSION = "0.0.1"
+DAG_VERSION = "0.0.2"
 
 
 # -------------- DAG
@@ -34,12 +32,7 @@ default_args = {
 def dag():
     @task.python()
     def run_scrapy_spider():
-        process = CrawlerProcess(
-            settings={
-                "FEED_URI": "s3://lg-job-skills-data-lake/raw_jobs_data/indeed_jobs/test_(time).json",
-                "FEED_FORMAT": "json",
-            }
-        )
+        process = CrawlerProcess(scrapy_settings)
         process.crawl(IndeedJobSpider)
         process.start()
 
