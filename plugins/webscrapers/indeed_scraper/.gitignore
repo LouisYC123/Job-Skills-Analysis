@@ -1,7 +1,0 @@
-basic_scrapy_spider/output.json
-.DS_Store
-basic_scrapy_spider/spiders/__pycache__/__init__.cpython-39.pyc
-basic_scrapy_spider/spiders/__pycache__/quotes.cpython-39.pyc
-basic_scrapy_spider/__pycache__/__init__.cpython-39.pyc
-basic_scrapy_spider/__pycache__/items.cpython-39.pyc
-basic_scrapy_spider/__pycache__/settings.cpython-39.pyc

@@ -1,25 +1,31 @@
 import re
 import json
 import scrapy
-from urllib.parse import urlencode
+from items import JobItem
+
+import random
+
+"""scraps 53 jobs (posted in last 7 days) in 20 minutes"""
 
 
 class IndeedJobSpider(scrapy.Spider):
-    name = "indeedjobs"
+    name = "indeeduk"
+    keyword_list = ["Data+Engineer"]
+    location_list = ["London"]
+    days_ago = 7
+    max_jobs = 200
 
-    def get_indeed_search_url(self, keyword, location, offset=0):
+    def get_indeed_search_url(self, keyword, location):
         """Gets url with encoded search parameters"""
-        parameters = {"q": keyword, "l": location, "filter": 0, "start": offset}
-        return "https://www.indeed.com/jobs?" + urlencode(parameters)
+        return f"https://uk.indeed.com/jobs?q=Title%3A+%22{keyword}%22&l={location}&fromage={str(self.days_ago)}"
 
     def start_requests(self):
-        keyword_list = ["python"]
-        location_list = ["texas"]
-        for keyword in keyword_list:
-            for location in location_list:
-                indeed_jobs_url = self.get_indeed_search_url(keyword, location)
+        """Request jobs from each keyword and location url and call
+        parse_search_results on response"""
+        for keyword in self.keyword_list:
+            for location in self.location_list:
                 yield scrapy.Request(
-                    url=indeed_jobs_url,
+                    url=self.get_indeed_search_url(keyword, location),
                     callback=self.parse_search_results,
                     meta={"keyword": keyword, "location": location, "offset": 0},
                 )
@@ -28,13 +34,11 @@ class IndeedJobSpider(scrapy.Spider):
         location = response.meta["location"]
         keyword = response.meta["keyword"]
         offset = response.meta["offset"]
-        # Returns the script tag that has all the job related data
         script_tag = re.findall(
             r'window.mosaic.providerData\["mosaic-provider-jobcards"\]=(\{.+?\});',
             response.text,
         )
         if script_tag is not None:
-            # Load script tag data into a a json object (dict)
             json_blob = json.loads(script_tag[0])
 
             ## Extract Jobs From Search Page
@@ -56,21 +60,13 @@ class IndeedJobSpider(scrapy.Spider):
                             "jobKey": job.get("jobkey"),
                         },
                     )
-
             # Paginate Through Jobs Pages
             if offset == 0:
-                # Get the total number of jobs and divide this by the number of jobs displayed per page
-                meta_data = json_blob["metaData"]["mosaicProviderJobCardsModel"][
-                    "tierSummaries"
-                ]
-                num_results = sum(category["jobCount"] for category in meta_data)
-                if num_results > 1000:
-                    num_results = 50
-
+                num_results = self.max_jobs
                 for offset in range(10, num_results + 10, 10):
-                    url = self.get_indeed_search_url(keyword, location, offset)
                     yield scrapy.Request(
-                        url=url,
+                        url=self.get_indeed_search_url(keyword, location)
+                        + f"&start={offset}",
                         callback=self.parse_search_results,
                         meta={
                             "keyword": keyword,
@@ -80,23 +76,24 @@ class IndeedJobSpider(scrapy.Spider):
                     )
 
     def parse_job(self, response):
-        location = response.meta["location"]
-        keyword = response.meta["keyword"]
         page = response.meta["page"]
-        position = response.meta["position"]
         script_tag = re.findall(r"_initialData=(\{.+?\});", response.text)
+        job_item = JobItem()
         if script_tag is not None:
             json_blob = json.loads(script_tag[0])
-            job = json_blob["jobInfoWrapperModel"]["jobInfoModel"]
-            yield {
-                "keyword": keyword,
-                "location": location,
-                "page": page,
-                "position": position,
-                "company": job.get("companyName"),
-                "jobkey": response.meta["jobKey"],
-                "jobTitle": job.get("jobTitle"),
-                "jobDescription": job.get("sanitizedJobDescription").get("content")
-                if job.get("sanitizedJobDescription") is not None
-                else "",
-            }
+            jobInfoModel = json_blob["jobInfoWrapperModel"]["jobInfoModel"]
+            job_item["url"] = response.url
+            job_item["page"] = page
+            job_item["job_title"] = jobInfoModel["jobInfoHeaderModel"].get("jobTitle")
+            job_item["company_name"] = jobInfoModel["jobInfoHeaderModel"].get(
+                "companyName"
+            )
+            job_item["job_location"] = json_blob.get("jobLocation")
+            job_item["job_type"] = jobInfoModel["jobMetadataHeaderModel"].get("jobType")
+            job_item["jobkey"] = response.meta["jobKey"]
+            job_item["date_posted"] = json_blob["hiringInsightsModel"].get("age")
+            job_item["jobDescription"] = jobInfoModel["sanitizedJobDescription"].get(
+                "content"
+            )
+
+            yield job_item
