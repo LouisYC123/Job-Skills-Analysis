@@ -8,5 +8,7 @@ ipykernel
 boto3
 pytz
 dbt-snowflake
+Scrapy
+scrapeops-scrapy-proxy-sdk
 snowflake-connector-python==2.8.0
 astronomer-cosmos[dbt-snowflake]

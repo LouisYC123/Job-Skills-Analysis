@@ -154,3 +154,6 @@ media/dashboard_example.webp
 plugins/webscrapers/indeed_scraper/indeed_scrapy_spider/output.json
 plugins/webscrapers/indeed_scraper/indeed_scrapy_spider/outputOLD.json
 plugins/webscrapers/indeed_scraper/indeed_scrapy_spider/settings.py
+plugins/webscrapers/indeed_jobs/indeed_jobs/settings_B.py
+plugins/webscrapers/indeed_scraper/indeed_scrapy_spider/settings.py
+.gitignore
