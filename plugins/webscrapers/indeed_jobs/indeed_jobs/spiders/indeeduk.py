@@ -1,11 +1,9 @@
 import re
 import json
 import scrapy
-from items import JobItem
+from webscrapers.indeed_jobs.indeed_jobs.items import JobItem
 
-import random
-
-"""scraps 53 jobs (posted in last 7 days) in 20 minutes"""
+"""scraps S3 jobs (posted in last 7 days) in 20 minutes"""
 
 
 class IndeedJobSpider(scrapy.Spider):
@@ -13,7 +11,7 @@ class IndeedJobSpider(scrapy.Spider):
     keyword_list = ["Data+Engineer"]
     location_list = ["London"]
     days_ago = 7
-    max_jobs = 200
+    max_jobs = 3
 
     def get_indeed_search_url(self, keyword, location):
         """Gets url with encoded search parameters"""

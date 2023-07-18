@@ -157,3 +157,5 @@ plugins/webscrapers/indeed_scraper/indeed_scrapy_spider/settings.py
 plugins/webscrapers/indeed_jobs/indeed_jobs/settings_B.py
 plugins/webscrapers/indeed_scraper/indeed_scrapy_spider/settings.py
 .gitignore
+plugins/webscrapers/cwjobs/cwjobs/settings.py
+plugins/webscrapers/cwjobs/cwjobs/settings_B.py

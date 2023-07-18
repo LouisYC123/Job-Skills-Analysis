@@ -1,5 +1,6 @@
 apache-airflow-providers-snowflake==4.0.2
 apache-airflow-providers-mysql==4.0.0
+apache-airflow-providers-docker
 requests
 python-dotenv
 pytest
@@ -8,6 +9,7 @@ ipykernel
 boto3
 pytz
 dbt-snowflake
+lxml==4.9.1
 Scrapy
 scrapeops-scrapy-proxy-sdk
 snowflake-connector-python==2.8.0

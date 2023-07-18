@@ -1,5 +1,4 @@
 from datetime import datetime, timedelta
-import pendulum
 import os
 from dotenv import load_dotenv
 from airflow.decorators import dag, task
@@ -49,7 +48,7 @@ default_args = {
 
 @dag(
     dag_id=f"dag_get_jobs_v{DAG_VERSION}",
-    start_date=datetime(2023, 5, 29),
+    start_date=datetime(2023, 7, 1),
     schedule_interval="@weekly",  #  once a week at midnight on Sunday morning
     default_args=default_args,
     catchup=True,
