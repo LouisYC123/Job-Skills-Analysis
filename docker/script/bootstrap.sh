@@ -20,6 +20,9 @@ yum install glibc -y
 # install system dependency to enable the installation of most Airflow extras
 yum install -y gcc gcc-c++ cyrus-sasl-devel python3-devel python3-wheel make
 
+yum install -y libxml2-devel libxslt-devel #python-devel
+# yum install -y lxml
+
 # install sqlite to avoid local-runner Airflow error messages
 yum install -y sqlite-devel
 
@@ -67,7 +70,10 @@ fi
 sudo rpm -ivh /mariadb_rpm/*
 
 # install minimal Airflow packages
-sudo -u airflow pip3 install $PIP_OPTION --no-use-pep517 --constraint /constraints.txt poetry
+# sudo -u airflow pip3 install --upgrade pip
+# RUN apk add --update --no-cache g++ gcc libxslt-dev
+sudo -u airflow pip3 install $PIP_OPTION --constraint /constraints.txt poetry
+# sudo -u airflow pip3 install $PIP_OPTION --no-use-pep517 --constraint /constraints.txt poetry
 sudo -u airflow pip3 install $PIP_OPTION --constraint /constraints.txt cached-property
 sudo -u airflow pip3 install $PIP_OPTION --constraint /constraints.txt wheel 
 sudo -u airflow pip3 install $PIP_OPTION --constraint /constraints.txt --use-deprecated legacy-resolver apache-airflow[celery,statsd"${AIRFLOW_DEPS:+,}${AIRFLOW_DEPS}"]=="${AIRFLOW_VERSION}"

@@ -368,7 +368,8 @@ linkify-it-py==2.0.0
 locket==1.0.0
 lockfile==0.12.2
 looker-sdk==22.20.0
-lxml==4.9.2
+# libxml2-python3==2.9.5
+lxml==4.9.1
 lz4==4.3.2
 markdown-it-py==2.1.0
 marshmallow-enum==1.5.1
@@ -510,7 +511,7 @@ qds-sdk==1.16.1
 reactivex==4.0.4
 readme-renderer==37.3
 redis==3.5.3
-redshift-connector==2.0.909
+# redshift-connector==2.0.909
 regex==2022.10.31
 requests-file==1.5.1
 requests-kerberos==0.14.0
