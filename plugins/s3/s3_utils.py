@@ -216,6 +216,8 @@ def copy_s3_object(
 def save_json_to_s3(
     data: dict,
     timestamp: str,
+    jobsite: str,
+    s3_subfolder: str,
     context,
 ) -> None:
     """Saves json object to AWS s3 bucket.
@@ -233,17 +235,14 @@ def save_json_to_s3(
     """
     bucket_name = context["ti"].xcom_pull(key="bucket_name")
     s3_hook = get_s3_hook()
-    filename = f"jobs-{timestamp}.json"
-    s3_key = f"raw_jobs_data/{filename}"
+    filename = f"{jobsite}-{timestamp}.json"
+    s3_key = f"{s3_subfolder}/{filename}"
     s3_hook.load_string(
         string_data=json.dumps(data),
         bucket_name=bucket_name,
         key=s3_key,
     )
-    context["ti"].xcom_push(
-        key=f"saved_filename_for_{context['run_id']}", value=filename
-    )
-    return s3_key
+    return filename
 
 
 # ---- 'Delete' Functions
@@ -251,7 +250,8 @@ def save_json_to_s3(
 
 def delete_s3_object(
     bucket: str,
-    s3_key: str,
+    subfolder: str,
+    target_file: str,
     aws_conn_id: str = "aws_default",
 ):
     """Deletes an object from s3
@@ -273,19 +273,18 @@ def delete_s3_object(
     # Create S3 resource from session
     s3 = s3_session.resource("s3")
     # delete target object
+    s3_key = subfolder + "/" + target_file
     s3.Object(bucket, s3_key).delete()
 
 
 # ---- 'Archive' Functions
 
 
-def archive_raw_data(context):
+def archive_raw_data(bucket_name, subfolder, target_file):
     """Archives raw data in raw_jobs_data/ by moving it to the
     archived subfolder
     """
-    bucket_name = context["ti"].xcom_pull(key="bucket_name")
-    target_file = context["ti"].xcom_pull(key=f"saved_s3_key_for_{context['run_id']}")
-    target_key = f"s3://{bucket_name}/{target_file}"
+    target_key = f"s3://{bucket_name}/{subfolder}/{target_file}"
     # Copy object to the _archived folder
     logging.info(f"Archiving {target_key}")
     print(target_key)
@@ -296,4 +295,4 @@ def archive_raw_data(context):
         destination_suffix="_archived",
     )
     # Delete object from the "drop-zone"
-    delete_s3_object(bucket_name, target_file)
+    delete_s3_object(bucket_name, subfolder, target_file)

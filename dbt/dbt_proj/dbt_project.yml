@@ -33,7 +33,16 @@ clean-targets:         # directories to be removed by `dbt clean`
 # files using the `{{ config(...) }}` macro.
 models:
   dbt_proj:
-    # Config indicated by + and applies to all files under models/example/
-    # tbl_int_jobskills:
-    #   +materialized: tables
-    #   +schema: analytics
+    staging:
+      +materialized: table
+      +enabled: true
+      +schema: staging
+    intermediate:
+      +materialized: table
+      +enabled: true
+      +schema: intermediate
+    marts:
+      +materialized: table
+      +enabled: true
+      +schema: marts
+

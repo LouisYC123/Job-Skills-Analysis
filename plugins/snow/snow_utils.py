@@ -19,3 +19,5 @@ def copy_from_stage(
         file_format = {file_format};
     """
     snow_hook.run(sql=sql, autocommit=True)
+
+    # PATTERN='.*jobs*.*.json'

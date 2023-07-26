@@ -6,16 +6,23 @@ from scrapy.crawler import CrawlerRunner
 from scrapy.utils.log import configure_logging
 from twisted.internet import reactor
 
-todays_date = "20230718"
 
+def run_spider(output_filename):
 
-def run_spider():
-    configure_logging()
-    runner = CrawlerRunner(cwjobs_settings)
-    deferred = runner.crawl(CWJobsSpider)
-    deferred.addBoth(lambda _: reactor.stop())
+    cwjobs_settings["FEEDS"] = {
+        f"s3://lg-job-skills-data-lake/raw_jobs_data/{output_filename}": {
+            "format": "json",
+        }
+    }
 
+    def setup_spider():
+        configure_logging()
+        runner = CrawlerRunner(cwjobs_settings)
+        deferred = runner.crawl(CWJobsSpider)
+        deferred.addBoth(lambda _: reactor.stop())
 
-def start_spider():
-    reactor.callWhenRunning(run_spider)
-    reactor.run()
+    def start_spider():
+        reactor.callWhenRunning(setup_spider)
+        reactor.run()
+
+    start_spider()

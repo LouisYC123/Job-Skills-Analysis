@@ -8,6 +8,8 @@ sources:
     tables: 
       - name: google_jobs_raw
         description: raw google_jobs json data. Refreshed weekly.
+      - name: cwjobs_raw
+        description: raw google_jobs json data. Refreshed weekly.
       - name: skills_list
         description: list of target skills to look for
 

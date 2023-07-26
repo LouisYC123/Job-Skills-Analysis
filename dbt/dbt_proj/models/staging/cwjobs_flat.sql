@@ -1,27 +1,26 @@
 {{ config(materialized='view') }}
 
 with source as (
-    SELECT * FROM {{ source('raw_data', 'google_jobs_raw' )}}
-)
+    SELECT * FROM {{ source('raw_data', 'cwjobs_raw' )}}
+),
 
 flatten_json as (
     SELECT DISTINCT
         value:title::String AS job_title
+        , value:url::String AS url
         , value:company_name::String AS company_name
-        , value:location::String AS location
-        , value:via::String AS posted_via
-        , value:description::String AS description
-        , value:job_id::String AS job_id
-        , value:detected_extensions.posted_at::String as listing_posted_at
-        , value:detected_extensions.schedule_type::String as job_type
+        , value:job_location::String AS location
+        , value:salary::String AS salary
+        , value:job_type::String AS job_type
+        , value:job_description::String AS description
         , CURRENT_TIMESTAMP() as load_timestamp
-        , case 
+        {# , case 
             when 
             listing_posted_at like '%hour%' 
                 then dateadd(hour, -(regexp_replace(listing_posted_at, '[^0-9]', ''):: int) * 1, CURRENT_TIMESTAMP())
             when listing_posted_at like '%day%' 
                 then dateadd(hour, -(regexp_replace(listing_posted_at, '[^0-9]', ''):: int) * 24, CURRENT_TIMESTAMP())
-        end as job_listing_posted_at
+        end as job_listing_posted_at #}
     FROM 
         source
         , lateral flatten( input => raw_data:data)
@@ -34,9 +33,9 @@ SELECT
     , company_name
     , location
     , job_type
-    , NULL as salary
+    , salary
     , url
-    , job_listing_posted_at
+    , NULL as job_listing_posted_at
     , load_timestamp
 FROM   
     flatten_json, 
@@ -48,5 +47,5 @@ FROM
                     ),
                 (select ARRAY_AGG(skill) from skills_list)
             )
-         )
-     ) F
+        )
+    ) F

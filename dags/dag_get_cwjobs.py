@@ -1,30 +1,19 @@
-from airflow.decorators import dag, task
-from snow.snow_utils import copy_from_stage
-from webscrapers.spider_utils import start_spider
 from datetime import datetime, timedelta
 import os
-
-# from webscrapers.cwjobs.cwjobs.spiders.cwjobs_spider import (
-#     CWJobsSpider,
-# )
-
-# from webscrapers.cwjobs.cwjobs.settings_B import cwjobs_settings
-from cosmos.task_group import DbtTaskGroup
+from airflow.decorators import dag, task
+from airflow.operators.dagrun_operator import TriggerDagRunOperator
+from snow.snow_utils import copy_from_stage
+from webscrapers.spider_utils import run_spider
+from snow.snow_utils import copy_from_stage
+from s3.s3_utils import archive_raw_data
 
 # -------------- CONFIG
-DAG_VERSION = "0.0.1"
-BUCKET_NAME = os.getenv("S3_RAW_DATA_BUCKET_NAME")
+DAG_VERSION = "1.0.0"
 JOBSITE = "cwjobs"
 RAW_DATA_TABLE = f"{JOBSITE}_raw"
 
-# dbt
-DBT_PROJECT_NAME = "dbt_proj"
-DBT_ROOT_PATH = "/usr/local/airflow/dbt"
-DBT_EXECUTABLE_PATH = "/usr/local/airflow/.local/bin/dbt"
-SNOW_CONN_ID = "snowflake_default"
-
-todays_date = datetime.today().strftime("%Y-%m-%d")
-
+BUCKET_NAME = os.getenv("S3_RAW_DATA_BUCKET_NAME")
+S3_SUBFOLDER = "raw_jobs_data"
 # -------------- DAG
 default_args = {
     "owner": "louis",
@@ -34,14 +23,13 @@ default_args = {
 
 
 @dag(
-    dag_id=f"dag_{JOBSITE}_scrape_v{DAG_VERSION}",
+    dag_id=f"dag_get_{JOBSITE}",
     start_date=datetime(2023, 7, 18),
     schedule_interval=None,
-    # schedule_interval="@weekly",  #  once a week at midnight on Sunday morning
     default_args=default_args,
-    # catchup=True,
+    catchup=False,
     dagrun_timeout=timedelta(hours=1),
-    tags=["testing"],
+    tags=["testing", f"v{DAG_VERSION}"],
 )
 def dag():
     @task.python()
@@ -52,14 +40,44 @@ def dag():
 
     @task.python()
     def run_scrapy_spider(**context):
+        todays_date = datetime.today().strftime("%Y-%m-%d")
         output_filename = f"{JOBSITE}_jobs_{todays_date}.json"
-        start_spider()
+        run_spider(output_filename)
         context["ti"].xcom_push(
             key=f"saved_{JOBSITE}_filename_for_{context['run_id']}",
             value=output_filename,
         )
 
-    (project_vars_to_xcom() >> run_scrapy_spider())
+    @task.python()
+    def copy_raw_data_from_stage(**context):
+        target_file = context["ti"].xcom_pull(
+            key=f"saved_{JOBSITE}_filename_for_{context['run_id']}"
+        )
+        copy_from_stage(filename=target_file, target_table=RAW_DATA_TABLE)
+
+    @task.python()
+    def archive(**context):
+        """Archives imported data."""
+        archive_raw_data(
+            bucket_name=context["ti"].xcom_pull(key="bucket_name"),
+            subfolder=S3_SUBFOLDER,
+            target_file=context["ti"].xcom_pull(
+                key=f"saved_{JOBSITE}_filename_for_{context['run_id']}"
+            ),
+        )
+
+    trigger_next_dag = TriggerDagRunOperator(
+        task_id="trigger_child_dag",
+        trigger_dag_id="dag_run_dbt",
+    )
+
+    (
+        project_vars_to_xcom()
+        >> run_scrapy_spider()
+        >> copy_raw_data_from_stage()
+        >> archive()
+        >> trigger_next_dag
+    )
 
 
 dag()
