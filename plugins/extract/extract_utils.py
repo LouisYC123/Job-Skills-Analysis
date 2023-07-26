@@ -84,6 +84,16 @@ def query_jobs_from_api(
             continue
         # add list of jobs to jobs_list
         jobs = results["jobs_results"]
+        for job in jobs:
+            for target_key in [
+                "job_highlights",
+                "related_links",
+                "thumbnail",
+                "extensions",
+                "job_id",
+            ]:
+                if target_key in job:
+                    del job[target_key]
 
         jobs_list.append(jobs)
 

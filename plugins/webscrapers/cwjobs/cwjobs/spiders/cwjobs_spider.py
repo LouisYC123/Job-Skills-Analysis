@@ -2,18 +2,21 @@ import scrapy
 from scrapy.spiders import CrawlSpider, Rule
 from scrapy.linkextractors import LinkExtractor
 from webscrapers.cwjobs.cwjobs.items import JobItem
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+PROXY = os.getenv("PROXY")
 
 
 class CWJobsSpider(CrawlSpider):
     name = "cwjobs_spider"
     allowed_domains = ["www.cwjobs.co.uk"]
     search_term = "data-engineer"
-    # start_urls = [f"https://www.cwjobs.co.uk/jobs/{search_term}/in-london?radius=30"]
 
     def start_requests(self):
         yield scrapy.Request(
-            "https://www.cwjobs.co.uk/jobs/data-engineer/in-london?radius=30",
-            # meta={"playwright": True},
+            "https://www.cwjobs.co.uk/jobs/data-engineer/in-united-kingdom?radius=30&postedWithin=7&q=%22Data+Engineer%22",
         )
 
     rules = (
