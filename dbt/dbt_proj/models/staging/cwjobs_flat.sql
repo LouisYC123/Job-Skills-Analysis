@@ -1,12 +1,13 @@
-{{ config(materialized='view') }}
-
 with source as (
     SELECT * FROM {{ source('raw_data', 'cwjobs_raw' )}}
+),
+skills_list as (
+    select * from {{ source('raw_data', 'skills_list' )}}
 ),
 
 flatten_json as (
     SELECT DISTINCT
-        value:title::String AS job_title
+        value:job_title::String AS job_title
         , value:url::String AS url
         , value:company_name::String AS company_name
         , value:job_location::String AS location
@@ -14,6 +15,7 @@ flatten_json as (
         , value:job_type::String AS job_type
         , value:job_description::String AS description
         , CURRENT_TIMESTAMP() as load_timestamp
+        , value:date_posted::String AS date_posted 
         {# , case 
             when 
             listing_posted_at like '%hour%' 
@@ -23,7 +25,7 @@ flatten_json as (
         end as job_listing_posted_at #}
     FROM 
         source
-        , lateral flatten( input => raw_data:data)
+        , lateral flatten( input => raw_data)
 )
 
 SELECT 
@@ -35,7 +37,8 @@ SELECT
     , job_type
     , salary
     , url
-    , NULL as job_listing_posted_at
+    , 'cwjobs' AS jobsite
+    , date_posted AS job_listing_posted_at
     , load_timestamp
 FROM   
     flatten_json, 
@@ -49,3 +52,5 @@ FROM
             )
         )
     ) F
+WHERE 
+    job_title IS NOT NULL

@@ -1,8 +1,9 @@
-{{ config(materialized='view') }}
-
 with source as (
     SELECT * FROM {{ source('raw_data', 'google_jobs_raw' )}}
-)
+),
+skills_list as (
+    select * from {{ source('raw_data', 'skills_list' )}}
+),
 
 flatten_json as (
     SELECT DISTINCT
@@ -35,7 +36,8 @@ SELECT
     , location
     , job_type
     , NULL as salary
-    , url
+    , NULL AS url
+    , 'google_jobs' AS jobsite
     , job_listing_posted_at
     , load_timestamp
 FROM   
