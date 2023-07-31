@@ -34,15 +34,14 @@ clean-targets:         # directories to be removed by `dbt clean`
 models:
   dbt_proj:
     staging:
-      +materialized: table
-      +enabled: true
-      +schema: staging
+      +materialized: view
+      +database: JOBS_DB
+      # +enabled: true
+      +schema: STAGING
     intermediate:
-      +materialized: table
-      +enabled: true
+      +materialized: view
       +schema: intermediate
     marts:
       +materialized: table
-      +enabled: true
       +schema: marts
 
