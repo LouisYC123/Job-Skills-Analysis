@@ -42,7 +42,7 @@ class CWJobsSpider(CrawlSpider):
         job_location = response.xpath(
             "//section[@class='job-summary']//li[@class='location icon']/div/text()"
         ).get()
-        if not job_location or job_location == ",":
+        if not job_location or job_location in [",", ", ", ",  "]:
             job_location = "London"
         salary = response.xpath(
             "//section[@class='job-summary']//li[@class='salary icon']/div/text()"
@@ -64,6 +64,7 @@ class CWJobsSpider(CrawlSpider):
 
         job_item["job_title"] = job_title
         job_item["company_name"] = company_name
+        job_item["country"] = "UK"
         job_item["job_location"] = job_location
         job_item["salary"] = salary
         job_item["job_type"] = job_type

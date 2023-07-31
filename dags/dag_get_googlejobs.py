@@ -82,7 +82,7 @@ def dag():
     @task.python()
     def query_google_jobs(**context):
         result_list = []
-        for country_params in COUNTRIES.values():
+        for country, country_params in COUNTRIES.items():
             query_params = get_query_params(
                 api_key=SERPAPI_KEY,
                 search_term=SEARCH_TERM,
@@ -91,8 +91,8 @@ def dag():
 
             result = query_jobs_from_api(
                 query_params=query_params,
+                target_country=country,
                 max_num_pages=MAX_PAGES_PER_COUNTRY,
-                context=context,
             )
             result_list.append(result)
 

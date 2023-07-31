@@ -45,7 +45,7 @@ def get_query_params(
 
 def query_jobs_from_api(
     query_params: dict,
-    context: dict,
+    target_country: str,
     max_num_pages: int = 10,
 ) -> dict:
     """Queries the google_jobs engine using serpapi.GoogleSearch().
@@ -85,6 +85,7 @@ def query_jobs_from_api(
         # add list of jobs to jobs_list
         jobs = results["jobs_results"]
         for job in jobs:
+            job["country"] = target_country
             for target_key in [
                 "job_highlights",
                 "related_links",

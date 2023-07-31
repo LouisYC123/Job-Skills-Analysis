@@ -13,4 +13,4 @@ lxml==4.9.1
 Scrapy
 scrapeops-scrapy-proxy-sdk
 snowflake-connector-python==2.8.0
-astronomer-cosmos[dbt-snowflake]
+astronomer-cosmos[dbt-snowflake]==0.7.5
