@@ -20,7 +20,22 @@ unioned as (
 cleaned as (
     SELECT 
         job_title as job_title_orig
-        , jobskill
+        , CASE
+            WHEN lower(jobskill) IN ('sql', 'mysql', 'pl/sql', 'postgresql', 'postgres') THEN 'sql'
+            WHEN lower(jobskill) IN ('nosql', 'no sql', 'no/sql', 'no-sql', 'no--sql') THEN 'no_sql'
+            WHEN lower(jobskill) IN ('aws', 'Amazon Web Services' ) THEN 'aws'
+            WHEN lower(jobskill) IN ('gcp', 'google cloud platform' ) THEN 'gcp'
+            WHEN lower(jobskill) IN ('pyspark', 'py-spark', 'py/spark', 'py spark') THEN 'pyspark'
+            WHEN lower(jobskill) IN ('map reduce', 'mapreduce', 'map-reduce') THEN 'map_reduce'
+            WHEN lower(jobskill) IN ('modeling', 'modelling', 'data modelling', 'data modeling', 'data-modelling', 'data-modeling', 'dimensional modelling', 'dimensional modeling', 'dimensional-modelling') THEN 'data_modelling'
+            WHEN lower(jobskill) IN ('warehouse', 'data warehouse', 'data-warehouse', 'warehous', 'ware house', 'ware-house', 'warehousing', 'ware-housing', 'data warehousing', 'mart', 'data mart') THEN 'data_warehousing'
+            WHEN lower(jobskill) IN ('lakes', 'data lakes', 'data lake') THEN 'data_lake'
+            WHEN lower(jobskill) IN ('powerbi', 'power-bi', 'power bi', 'power  bi', 'power/bi') THEN 'data_lake'
+            WHEN lower(jobskill) IN ('ci/cd', 'ci/ cd', 'ci /cd', 'ci / cd', 'cicd', 'ci-cd', 'ci cd', 'continuous integration / continuous delivery', 'continuous integration/continuous deployment') THEN 'ci/cd'
+            WHEN lower(jobskill) IN ('pubsub', 'pub sub', 'pub-sub', 'pub/sub') THEN 'pub/sub'
+            WHEN lower(jobskill) IN ('data bricks', 'databricks', 'databrick', 'azure databricks', 'azure_databricks', 'azure-databricks') THEN 'databricks'
+            ELSE lower(jobskill)
+        END AS jobskill
         , CASE
             WHEN LOWER(job_title) LIKE 'data engineer%' THEN 'Data Engineer' 
             WHEN LOWER(job_title) LIKE '%data scientist%' THEN 'Data Scientist' 

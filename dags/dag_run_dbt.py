@@ -15,7 +15,7 @@ todays_date = datetime.today().strftime("%Y-%m-%d")
 # -------------- DAG
 default_args = {
     "owner": "louis",
-    "retries": 5,
+    "retries": None,
     "provide_context": True,
 }
 
