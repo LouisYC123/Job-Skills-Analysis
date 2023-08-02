@@ -35,6 +35,7 @@ select
     , pay_frequency 
     , jobsite
     , job_id
+    , num_skill_per_job
     , job_listing_posted_at
     , load_timestamp
     , CURRENT_TIMESTAMP() as updated_timestamp

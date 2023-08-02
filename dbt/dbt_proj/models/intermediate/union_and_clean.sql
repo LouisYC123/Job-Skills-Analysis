@@ -104,9 +104,9 @@ cleaned as (
             , jobsite
             , location
             , CASE 
-                WHEN country IS NULL AND jobsite = 'cwjobs' THEN 'UK' 
+                WHEN country IS NULL AND jobsite = 'cwjobs' THEN 'United Kingdom' 
                 WHEN country IS NULL AND jobsite <> 'cwjobs' THEN TRIM(SPLIT_PART(location, ',', -1))
-                WHEN country = 'United Kingdom' THEN 'UK' 
+                WHEN country = 'UK' THEN 'United Kingdom' 
             ELSE country END AS country      
             ,
                 CASE 
@@ -164,6 +164,7 @@ SELECT
     , employment_type
     , company_name
     , CASE WHEN  median_salary < 101 THEN NULL ELSE median_salary END AS pay_amount
+    , COUNT(*) OVER (PARTITION BY JOB_ID) AS num_skill_per_job
     , pay_currency
     , pay_frequency 
     , jobsite
