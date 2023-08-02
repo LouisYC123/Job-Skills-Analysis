@@ -3,25 +3,36 @@ Description: Template to spin up cloud architecture for the JobSkillsAnalysis pr
 
 Mappings:
   DataSource:
-    GoogleJobs:
-      LandingZoneBucketName: lg-google-jobs-landing-zone
-      ArchiveZoneBucketName: lg-google-jobs-archive-zone
-      GlueCatalogDBName: google_jobs
+    LandingZoneBucketName: lg-job-skills-data-lake
+    AirflowBucketName: lg-job-skills-airflow-bucket
+    DagsBucketName: lg-job-skills-dag-bucket
+    GlueCatalogDBName: google_jobs
 
 Resources:  
   # ---- S3 Buckets
-  GoogleJobsLanding:
+  RawJobsLanding:
     Type: "AWS::S3::Bucket"
     Properties:
-      BucketName: !FindInMap [DataSource, GoogleJobs, LandingZoneBucketName]
+      BucketName: !FindInMap [DataSource, LandingZoneBucketName]
       BucketEncryption:
         ServerSideEncryptionConfiguration:
           - ServerSideEncryptionByDefault:
               SSEAlgorithm: AES256
       LoggingConfiguration:
-        DestinationBucketName: !Ref AccessLogBucketGoogleJobsLanding
+        DestinationBucketName: !Ref AccessLogBucketRawJobsLanding
 
-  AccessLogBucketGoogleJobsLanding:
+  DagsBucket:
+    Type: "AWS::S3::Bucket"
+    Properties:
+      BucketName: !FindInMap [DataSource, DagsBucketName]
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: AES256
+      LoggingConfiguration:
+        DestinationBucketName: !Ref AccessLogBucketRawJobsLanding
+
+  AccessLogBucketRawJobsLanding:
     Type: "AWS::S3::Bucket"
     Properties:
       PublicAccessBlockConfiguration:
@@ -40,7 +51,7 @@ Resources:
         Statement:
           - Effect: Allow
             Principal:
-              AWS: # Temp Placeholder
+              AWS:
                 - !Sub "arn:aws:iam::${AWS::AccountId}:root"
             Action: sts:AssumeRole
       Policies: 
@@ -53,86 +64,168 @@ Resources:
                   - s3:GetObject
                   - s3:GetObjectVersion
                 Resource:                   
-                  - !GetAtt GoogleJobsLanding.Arn
-                  - !Sub "${GoogleJobsLanding.Arn}/*"
+                  - !GetAtt RawJobsLanding.Arn
+                  - !Sub "${RawJobsLanding.Arn}/*"
               - Effect: Allow
                 Action: 
                   - s3:ListBucket
                   - s3:GetBucketLocation
                 Resource: 
-                  - !GetAtt GoogleJobsLanding.Arn
-                  - !Sub "${GoogleJobsLanding.Arn}/*"
-              # Condition:
-              #   StringLike: 
-              #     s3:prefix:
-              #       - "*"
+                  - !GetAtt RawJobsLanding.Arn
+                  - !Sub "${RawJobsLanding.Arn}/*"
 
+  MWAAExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - airflow-env.amazonaws.com
+                - airflow.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: !Ref AWS::StackName
+          PolicyDocument:
+            Statement:
+              - Effect: Allow
+                Action:
+                  - airflow:PublishMetrics
+                Resource: !Sub arn:aws:airflow:${AWS::Region}:${AWS::AccountId}:environment/lg-job-skills
+              - Effect: Deny
+                Action: s3:ListAllMyBuckets
+                Resource:
+                  - !GetAtt AirflowBucket.Arn
+                  - !Sub "${AirflowBucket.Arn}/*"
+              - Effect: Allow
+                Action:
+                  - s3:GetObject*
+                  - s3:GetBucket*
+                  - s3:List*
+                Resource:
+                  - !GetAtt AirflowBucket.Arn
+                  - !Sub "${AirflowBucket.Arn}/*"
+                  - !GetAtt ProjectBucket.Arn
+                  - !Sub "${ProjectBucket.Arn}/*"
+              - Effect: Allow
+                Action:
+                  - logs:DescribeLogGroups
+                  - logs:CreateLogStream
+                  - logs:CreateLogGroup
+                  - logs:PutLogEvents
+                  - logs:GetLogEvents
+                  - logs:GetLogRecord
+                  - logs:GetLogGroupFields
+                  - logs:GetQueryResults
+                  - cloudwatch:PutMetricData
+                Resource: "*"
+              - Effect: Allow
+                Action:
+                  - sqs:ChangeMessageVisibility
+                  - sqs:DeleteMessage
+                  - sqs:GetQueueAttributes
+                  - sqs:GetQueueUrl
+                  - sqs:ReceiveMessage
+                  - sqs:SendMessage
+                Resource: !Sub arn:aws:sqs:${AWS::Region}:*:airflow-celery-*
+              - Effect: Allow
+                Action:
+                  - kms:Decrypt
+                  - kms:DescribeKey
+                  - kms:GenerateDataKey*
+                  - kms:Encrypt
+                Resource: !ImportValue shared-secrets-kms-arn
+                Condition:
+                  StringLike:
+                    kms:ViaService:
+                      - !Sub sqs.${AWS::Region}.amazonaws.com
+                      - !Sub s3.${AWS::Region}.amazonaws.com
 
   # ---- MWAA
-  # TODO
-  # ---- Secrets
-  SnowflakeCredentials:
-    # TODO - See aws-data-lakehouse cloudformation.yml
-  SecretRedshiftAttachment:
-    # TODO - See aws-data-lakehouse cloudformation.yml
-
-  # ---- Quicksight
-  # TODO
-  QuickSightSnowflakeDataSource:
-    Type: 'AWS::QuickSight::DataSource'
+  AirflowEnvironment:
+    Type: AWS::MWAA::Environment
     Properties:
-      DataSourceId: 'MySnowflakeDataSource'
-      AwsAccountId: 'YOUR_AWS_ACCOUNT_ID'
-      Name: 'My Snowflake DataSource'
-      DataSourceParameters:
-        SnowflakeParameters:
-          Database: 'my_database'
-          Warehouse: 'my_warehouse'
-      Credentials:
-        CredentialPair:
-          Username: 'my_snowflake_username'  # TODO - Use SecretsManager
-          Password: 'my_snowflake_password'
+      Name: job-skills-pipeline
+      AirflowVersion: "2.4.3"
+      EnvironmentClass: mw1.small
+      MinWorkers: 1
+      MaxWorkers: 5
+      DagS3Path: !FindInMap [DataSource, DagsBucketName]
+      RequirementsS3Path: requirements/requirements.txt
+      SourceBucketArn: !GetAtt AirflowBucket.Arn
+      KmsKey: !ImportValue shared-secrets-kms-arn
+      ExecutionRoleArn: !GetAtt MWAAExecutionRole.Arn
+      WebserverAccessMode: PUBLIC_ONLY
+      NetworkConfiguration:
+        SubnetIds:
+          - !Select [0, !Split [ ",", !ImportValue vpc-network-private-subnets ]]
+          - !Select [1, !Split [ ",", !ImportValue vpc-network-private-subnets ]]
+        SecurityGroupIds:
+          - !Ref SecurityGroup
+      LoggingConfiguration:
+        DagProcessingLogs:
+          Enabled: true
+          LogLevel: WARNING
+        SchedulerLogs:
+          Enabled: true
+          LogLevel: WARNING
+        TaskLogs:
+          Enabled: true
+          LogLevel: WARNING
+        WebserverLogs:
+          Enabled: true
+          LogLevel: WARNING
+        WorkerLogs:
+          Enabled: true
+          LogLevel: WARNING
   
-  # TODO
-  QuickSightSnowflakeDataset:
-    Type: 'AWS::QuickSight::DataSet'
+  AirflowBucket:
+    Type: AWS::S3::Bucket
+    UpdateReplacePolicy: Retain
+    DeletionPolicy: Retain
     Properties:
-      DataSetId: 'MySnowflakeDataSet'
-      AwsAccountId: 'YOUR_AWS_ACCOUNT_ID'
-      Name: 'My Snowflake DataSet'
-      PhysicalTableMap:
-        - TableName: 'my_table'
-          DataSourceArn: !Ref QuickSightSnowflakeDataSource
-          InputColumns:
-            - Name: 'column1'
-              Type: STRING
-            - Name: 'column2'
-              Type: INTEGER
-            - Name: 'column3'
-              Type: DECIMAL(10,2)
-            # Add more columns as needed
-      Permissions:
-        - Principal: '*'
-          Actions:
-            - 'quicksight:DescribeDataSet'
-            - 'quicksight:DescribeDataSetPermissions'
-            - 'quicksight:PassDataSet'
-            - 'quicksight:DescribeIngestion'
-            - 'quicksight:ListIngestions'
-            - 'quicksight:UpdateDataSetPermissions'
-  # TODO
-  QuickSightAnalysis:
-    Type: 'AWS::QuickSight::Analysis'
+      BucketName: !FindInMap [EnvironmentValues, !Ref Environment, BucketName]
+      VersioningConfiguration:
+        Status: Enabled
+      OwnershipControls:
+        Rules:
+          - ObjectOwnership: BucketOwnerEnforced
+      BucketEncryption:
+        ServerSideEncryptionConfiguration:
+          - ServerSideEncryptionByDefault:
+              SSEAlgorithm: aws:kms
+              KMSMasterKeyID: !ImportValue shared-secrets-kms-arn
+            BucketKeyEnabled: true
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      LifecycleConfiguration:
+        Rules:
+          - Id: Infrequent
+            Status: Enabled
+            Transitions:
+              - TransitionInDays: 90
+                StorageClass: STANDARD_IA
+
+  AirflowBucketPolicy:
+    Type: AWS::S3::BucketPolicy
     Properties:
-      AnalysisId: 'JobSkillsAnalysis'
-      AwsAccountId: !Sub "arn:aws:iam::${AWS::AccountId}:root"
-      Name: 'JobSkillsAnalysis'
-      Permissions:
-        - Principal: '*' 
-          Actions:
-            - "*"
-      SourceEntity: # TODO
-        AnalysisSourceTemplate:
-          DataSetReferences:
-            - DataSetArn: 'arn:aws:quicksight:us-east-1:YOUR_AWS_ACCOUNT_ID:dataset/DatasetId'
-              DataSetPlaceholder: 'MyDataSet'
+      Bucket: !Ref AirflowBucket
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Sid: AllowSSLRequestsOnly
+            Effect: Deny
+            Principal: "*"
+            Action: "s3:*"
+            Resource:
+              - !Sub ${AirflowBucket.Arn}
+              - !Sub ${AirflowBucket.Arn}/*
+            Condition:
+              Bool:
+                aws:SecureTransport: false
+
