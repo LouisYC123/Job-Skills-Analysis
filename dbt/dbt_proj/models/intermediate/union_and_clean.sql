@@ -164,7 +164,7 @@ SELECT
     , employment_type
     , company_name
     , CASE WHEN  median_salary < 101 THEN NULL ELSE median_salary END AS pay_amount
-    , COUNT(*) OVER (PARTITION BY JOB_ID) AS num_skill_per_job
+    {# , COUNT(*) OVER (PARTITION BY JOB_ID) AS num_skill_per_job #}
     , pay_currency
     , pay_frequency 
     , jobsite
