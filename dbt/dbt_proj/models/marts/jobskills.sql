@@ -4,12 +4,11 @@
         unique_key='jobskill_id',
         merge_update_columns = [
             'contract_type',
-            'employment_type'
+            'employment_type',
             'pay_amount',
             'pay_currency',
             'pay_frequency',
-            'posted_via',
-            'updated_timestamp'
+            'updated_timestamp',
             ]
     )
 }}
@@ -35,7 +34,8 @@ select
     , pay_frequency 
     , jobsite
     , job_id
-    , num_skill_per_job
+    {# , COUNT(*) OVER (PARTITION BY job_id) AS num_skill_per_job #}
+    {# , num_skill_per_job #}
     , job_listing_posted_at
     , load_timestamp
     , CURRENT_TIMESTAMP() as updated_timestamp
