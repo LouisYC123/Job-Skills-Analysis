@@ -3,10 +3,12 @@ Visualising trends in Job skill requirements using SerpApi, webscraping, Airflow
 
 ![jobs_dlh_architecture-V3 drawio](https://github.com/LouisYC123/job-skills-analysis/assets/97873724/0b800cd9-dc51-4e5b-a9a1-6bd47e6cc8ec)  
 
+## Final Dashboard
+![JobSkillsDashboard](https://github.com/LouisYC123/job-skills-analysis/assets/97873724/12c9bea6-ff49-4ab6-a826-be5dcb52705b)
 
 
 ## Summary
-This repo contains a cloudformation template and supporting code to build a Data LakeHouse with AWS, Snowflake & Airflow. Each week, data from new job postings will be fetched and loaded to Snowflake. From there, dbt models will handle the data cleaning and transformations required to get the data into a useable shape fit for analysis.
+This repo contains a cloudformation template and supporting code to build a Data Warehouse with Snowflake, AWS & Airflow. Each week, data from new job postings will be fetched and loaded to Snowflake. From there, dbt models will handle the data cleaning and transformations required to get the data into a useable shape fit for analysis.
 
 The aim of the analysis is to visualize trends in the skills required for data engineering jobs
 
@@ -16,8 +18,6 @@ The aim of the analysis is to visualize trends in the skills required for data e
 - Incorporating Python into SQL scripts using Python UDFs
 - Using dbt utility package for the generation of unique identifiers
 
-** Future Build: **
- - Incorporate data from google trends, Medium API and Twitter to further understand trends in Job Skills.
 
 ## Prerequisites
 
