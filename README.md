@@ -3,8 +3,9 @@ Visualising trends in Job skill requirements using SerpApi, webscraping, Airflow
 
 ![jobs_dlh_architecture-V3 drawio](https://github.com/LouisYC123/job-skills-analysis/assets/97873724/0b800cd9-dc51-4e5b-a9a1-6bd47e6cc8ec)  
 
-## Final Dashboard
-![JobSkillsDashboard](https://github.com/LouisYC123/job-skills-analysis/assets/97873724/12c9bea6-ff49-4ab6-a826-be5dcb52705b)
+## Dashboard
+![jobs_dlh_architecture-V3 drawio-3](https://github.com/LouisYC123/job-skills-analysis/assets/97873724/23dac847-e629-4d5a-bf14-dc6a69d21712)
+
 
 
 ## Summary
