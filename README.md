@@ -1,11 +1,10 @@
 # job-skills-analysis
 Visualising trends in Job skill requirements using SerpApi, webscraping, Airflow, Snowflake and AWS Quicksight.
 
-![jobs_dlh_architecture-V3 drawio](https://github.com/LouisYC123/job-skills-analysis/assets/97873724/0b800cd9-dc51-4e5b-a9a1-6bd47e6cc8ec)  
-
-## Dashboard
 ![jobs_dlh_architecture-V3 drawio-3](https://github.com/LouisYC123/job-skills-analysis/assets/97873724/23dac847-e629-4d5a-bf14-dc6a69d21712)
 
+## Dashboard
+![JobSkillsDashboard](https://github.com/LouisYC123/job-skills-analysis/assets/97873724/742c5171-6ca1-479f-9567-10e52aa43dc8)
 
 
 ## Summary
