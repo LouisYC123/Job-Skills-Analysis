@@ -32,7 +32,6 @@ class CWJobsSpider(CrawlSpider):
     )
 
     def parse_job(self, response):
-
         job_item = JobItem()
         job_title = response.xpath("//div[@class='row title']/h1/text()").get()
         if not job_title:
